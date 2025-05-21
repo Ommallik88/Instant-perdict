@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instant Predictor</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #2c3e50; /* Dark blue background */
+            margin: 0;
+            color: #ecf0f1; /* Light gray text */
+        }
+
+        .game-container {
+            background-color: #34495e; /* Slightly lighter blue */
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: #f1c40f; /* Yellow heading */
+            margin-bottom: 25px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .coin-display {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #e67e22; /* Orange for coins */
+        }
+
+        #coins {
+            color: #27ae60; /* Green for coin value */
+            font-size: 1.2em;
+        }
+
+        .prediction-area {
+            margin-bottom: 30px;
+        }
+
+        .instruction {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #bdc3c7;
+        }
+
+        .predict-btn {
+            background-color: #e74c3c; /* Red for buttons - though not directly used in this simplified version */
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.5em;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .bet-info {
+            font-size: 0.9em;
+            color: #95a5a6;
+        }
+
+        .action-btn {
+            background-color: #27ae60; /* Green for action button */
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.8em;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 7px 15px rgba(0, 0, 0, 0.3);
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            background-color: #2ecc71; /* Lighter green on hover */
+            transform: translateY(-3px);
+        }
+
+        .action-btn:disabled {
+            background-color: #7f8c8d; /* Gray when disabled */
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .result-area {
+            min-height: 50px; /* To prevent layout shift */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .result-text {
+            font-size: 2em;
+            font-weight: bold;
+            color: #f1c40f; /* Yellow for results */
+            animation: popIn 0.5s ease-out forwards;
+            opacity: 0;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.5); }
+            80% { opacity: 1; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Specific result colors */
+        .result-win {
+            color: #2ecc71; /* Green for 'Big' result */
+        }
+
+        .result-lose {
+            color: #e74c3c; /* Red for 'Small' result */
+        }
+
+        .result-finished {
+            color: #c0392b; /* Darker red for coin finished */
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Instant Predictor</h1>
+        <div class="coin-display">
+            Coins: <span id="coins">2000</span>
+        </div>
+
+        <div class="prediction-area">
+            <p class="instruction">Click "PREDICT!" to get a result:</p>
+            <p class="bet-info">Cost per prediction: 25 coins</p>
+        </div>
+
+        <button id="makePrediction" class="action-btn">PREDICT!</button>
+
+        <div class="result-area">
+            <p id="predictionResult" class="result-text">Ready to predict?</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let coins = 2000; // Starting coins
+            const betCost = 25; // Cost per prediction
+
+            // Get references to HTML elements
+            const coinsDisplay = document.getElementById('coins');
+            const makePredictionBtn = document.getElementById('makePrediction');
+            const predictionResult = document.getElementById('predictionResult');
+
+            // Set initial coin display
+            coinsDisplay.textContent = coins;
+
+            // Function to update the displayed coin balance
+            function updateCoinsDisplay() {
+                coinsDisplay.textContent = coins;
+            }
+
+            // Function to enable/disable the PREDICT button based on coin balance
+            function updateButtonState() {
+                if (coins < betCost) {
+                    makePredictionBtn.disabled = true; // Disable if not enough coins
+                    predictionResult.textContent = "Coins Finished! Game Over.";
+                    predictionResult.className = 'result-text result-finished'; // Apply finished style
+                } else {
+                    makePredictionBtn.disabled = false; // Enable if enough coins
+                }
+            }
+
+            // Event listener for the PREDICT button click
+            makePredictionBtn.addEventListener('click', () => {
+                if (coins >= betCost) {
+                    coins -= betCost; // Deduct coins
+                    updateCoinsDisplay(); // Update display
+
+                    // Generate a random number (1 to 100)
+                    const randomNumber = Math.floor(Math.random() * 100) + 1;
+                    let resultText;
+                    let resultClass;
+
+                    // Determine if it's "BIG" or "SMALL" (50/50 chance)
+                    if (randomNumber <= 50) {
+                        resultText = `It's SMALL! (Number: ${randomNumber})`;
+                        resultClass = 'result-text result-lose'; // Using 'lose' style for 'Small' result
+                    } else {
+                        resultText = `It's BIG! (Number: ${randomNumber})`;
+                        resultClass = 'result-text result-win'; // Using 'win' style for 'Big' result
+                    }
+                    
+                    // Display the result
+                    predictionResult.textContent = resultText;
+                    predictionResult.className = resultClass; // Apply corresponding styling
+
+                }
+                updateButtonState(); // Check coin balance and update button state after prediction
+            });
+
+            // Initial check when the page loads to set the button state
+            updateButtonState();
+        });
+    </script>
+</body>
+</html>
